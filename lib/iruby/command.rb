@@ -87,12 +87,18 @@ module IRuby
 
       static_dir = File.join(profile_dir, 'static')
       target_dir = File.join(File.dirname(__FILE__), 'static')
-      unless (File.readlink(static_dir) rescue nil) == target_dir
-        FileUtils.rm_rf(static_dir) rescue nil
-        begin
-          FileUtils.ln_sf(target_dir, static_dir)
-        rescue => ex
-          STDERR.puts "Could not create directory #{static_dir}: #{ex.message}"
+      if PLATFORM_WIN
+        unless File.exist? static_dir
+          FileUtils.cp_r(target_dir, static_dir)
+        end
+      elsif
+        unless (File.readlink(static_dir) rescue nil) == target_dir
+          FileUtils.rm_rf(static_dir) rescue nil
+          begin
+            FileUtils.ln_sf(target_dir, static_dir)
+          rescue => ex
+            STDERR.puts "Could not create directory #{static_dir}: #{ex.message}"
+          end
         end
       end
     end
