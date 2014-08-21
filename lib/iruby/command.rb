@@ -95,8 +95,15 @@ module IRuby
       static_dir = File.join(profile_dir, 'static')
       target_dir = File.join(File.dirname(__FILE__), 'static')
       if PLATFORM_WIN
-        unless File.exist? static_dir
-          FileUtils.cp_r(target_dir, static_dir)
+        if File.exist? static_dir
+          if ['custom.css', 'custom.js'].any? do |name|
+              dst = File.expand_path('./custom/' + name, target_dir).gsub('/', '\\')
+              src = File.expand_path('./custom/' + name, static_dir).gsub('/', '\\')
+              !FileUtils.cmp(src, dst)
+            end
+            src = File.expand_path('..', static_dir)
+            FileUtils.cp_r(target_dir, src)
+          end
         end
       elsif
         unless (File.readlink(static_dir) rescue nil) == target_dir
