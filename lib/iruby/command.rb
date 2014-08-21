@@ -77,7 +77,14 @@ module IRuby
 
       kernel_cmd = []
       kernel_cmd << ENV['BUNDLE_BIN_PATH'] << 'exec' if ENV['BUNDLE_BIN_PATH']
-      kernel_cmd += [File.expand_path($0), 'kernel', '{connection_file}']
+
+      if PLATFORM_WIN
+        files = [RbConfig.ruby, File.expand_path("../../../bin/iruby", __FILE__)].map{|path| path.gsub('/', '\\\\\\')}
+        kernel_cmd += files + ['kernel' , '{connection_file}']
+      elsif
+        kernel_cmd += [File.expand_path($0), 'kernel', '{connection_file}']
+      end
+
       kernel_cmd = "c.KernelManager.kernel_cmd = #{kernel_cmd.inspect}"
       Dir[File.join(profile_dir, '*_config.py')].each do |path|
         content = File.read(path)
