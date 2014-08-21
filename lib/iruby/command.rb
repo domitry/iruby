@@ -3,7 +3,8 @@ require 'fileutils'
 
 module IRuby
   class Command
-    IRUBYDIR = '~/.config/iruby'
+    PLATFORM_WIN = RUBY_PLATFORM.downcase =~ /mswin(?!ce)|mingw|cygwin/
+    IRUBYDIR = (PLATFORM_WIN ? '~/iruby' : '~/.config/iruby')
 
     def initialize(args)
       @args = args
