@@ -3,8 +3,7 @@ require 'fileutils'
 
 module IRuby
   class Command
-    PLATFORM_WIN = RUBY_PLATFORM.downcase =~ /mswin(?!ce)|mingw|cygwin/
-    IRUBYDIR = (PLATFORM_WIN ? '~/iruby' : '~/.config/iruby')
+    IRUBYDIR = (RUBY_PLATFORM =~ /mswin(?!ce)|mingw|cygwin/ ? '~/iruby' : '~/.config/iruby')
 
     def initialize(args)
       @args = args
@@ -78,7 +77,7 @@ module IRuby
       kernel_cmd = []
       kernel_cmd << ENV['BUNDLE_BIN_PATH'] << 'exec' if ENV['BUNDLE_BIN_PATH']
 
-      if PLATFORM_WIN
+      if RUBY_PLATFORM =~ /mswin(?!ce)|mingw|cygwin/
         files = [RbConfig.ruby, File.expand_path("../../../bin/iruby", __FILE__)].map{|path| path.gsub('/', '\\\\\\')}
         kernel_cmd += files + ['kernel' , '{connection_file}']
       elsif
@@ -94,18 +93,7 @@ module IRuby
 
       static_dir = File.join(profile_dir, 'static')
       target_dir = File.join(File.dirname(__FILE__), 'static')
-      if PLATFORM_WIN
-        if File.exist? static_dir
-          if ['custom.css', 'custom.js'].any? do |name|
-              dst = File.expand_path('./custom/' + name, target_dir).gsub('/', '\\')
-              src = File.expand_path('./custom/' + name, static_dir).gsub('/', '\\')
-              !FileUtils.cmp(src, dst)
-            end
-            src = File.expand_path('..', static_dir)
-            FileUtils.cp_r(target_dir, src)
-          end
-        end
-      elsif
+      begin
         unless (File.readlink(static_dir) rescue nil) == target_dir
           FileUtils.rm_rf(static_dir) rescue nil
           begin
@@ -113,6 +101,15 @@ module IRuby
           rescue => ex
             STDERR.puts "Could not create directory #{static_dir}: #{ex.message}"
           end
+        end
+      rescue NotImplementedError
+        if ['custom.css', 'custom.js'].any? do |name|
+            dst = File.expand_path('./custom/' + name, target_dir).gsub('/', '\\')
+            src = File.expand_path('./custom/' + name, static_dir).gsub('/', '\\')
+            !FileUtils.cmp(src, dst)
+          end
+          src = File.expand_path('..', static_dir)
+          FileUtils.cp_r(target_dir, src)
         end
       end
     end
