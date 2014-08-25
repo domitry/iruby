@@ -103,14 +103,8 @@ module IRuby
           end
         end
       rescue NotImplementedError
-        if ['custom.css', 'custom.js'].any? do |name|
-            dst = File.expand_path('./custom/' + name, target_dir).gsub('/', '\\')
-            src = File.expand_path('./custom/' + name, static_dir).gsub('/', '\\')
-            !FileUtils.cmp(src, dst)
-          end
-          src = File.expand_path('..', static_dir)
-          FileUtils.cp_r(target_dir, src)
-        end
+        src = File.expand_path('..', static_dir)
+        FileUtils.cp_r(target_dir, src)
       end
     end
   end
